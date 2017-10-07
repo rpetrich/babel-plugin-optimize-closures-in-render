@@ -1,0 +1,30 @@
+{
+  "name": "babel-plugin-optimize-closures-in-render",
+  "version": "0.1.0",
+  "description": "Avoid closure creation inside render methods to reduce garbage creation/rerendering in React/Preact components",
+  "main": "plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpetrich/babel-plugin-optimize-closures-in-render.git"
+  },
+  "keywords": [
+    "optimization",
+    "babel",
+    "react",
+    "closures"
+  ],
+  "author": "Ryan Petrich <rpetrich@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rpetrich/babel-plugin-optimize-closures-in-render/issues"
+  },
+  "homepage": "https://github.com/rpetrich/babel-plugin-optimize-closures-in-render#readme",
+  "peerDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-traverse": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1"
+  }
+}
