@@ -1,13 +1,53 @@
-class MyComponent {
-	render() {
-		const { onSubmit, value, anotherValue } = this.props;
+var __render_pending,
+    __render_lookup = function () {
+	var map;
 
-		const wrappedMethod = this._value === (this._value = value) & this._cached || (this._cached = () => this.someMethod(value));
-		const boundMethod = this._anotherValue === (this._anotherValue = anotherValue) & (this._value2 === (this._value2 = value) & this._cached2) || (this._cached2 = this.someMethod.bind(this, value, anotherValue));
+	if (typeof WeakMap != "undefined") {
+		map = new WeakMap();
+	}
+
+	return function (target, nodeIndex, expectedValues) {
+		var targetCache = map ? map.get(target) || map.set(target, []) : target.__render_cache || (target.__render_cache = []);
+		var nodeCache = targetCache[nodeIndex];
+
+		if (expectedValues && nodeCache) {
+			for (var i = 0; i < expectedValues.length; i++) {
+				if (nodeCache.v[i] !== expectedValues[i]) {
+					nodeCache = 0;
+					break;
+				}
+			}
+		}
+
+		if (nodeCache) {
+			return nodeCache._;
+		}
+
+		__render_pending = targetState[nodeIndex] = {
+			v: expectedValues
+		};
+	};
+}();
+
+var foo;
+
+class MyComponent {
+	simpleMethod() {}
+	someMethod(foo, bar) {}
+	render() {
+		// Kind of silly, but represents all combinations
+		const { value, anotherValue, onSubmit } = this.props;
+
+		const passthrough = __render_lookup(this, 0) || (__render_pending._ = () => this.simpleMethod());
+		const wrappingValue = __render_lookup(this, 1, [value]) || (__render_pending._ = () => this.someMethod(value));
+		const boundFunction = __render_lookup(this, 2, [value, anotherValue]) || (__render_pending._ = this.someMethod.bind(this, value, anotherValue));
 
 		return React.createElement("button", {
-			onClick: this._anotherValue2 === (this._anotherValue2 = anotherValue) & (this._value3 === (this._value3 = value) & (this._onSubmit === (this._onSubmit = onSubmit) & (this._event2 === (this._event2 = event) & this._cached3))) || (this._cached3 = event => onSubmit(value, anotherValue, event)),
-			onBlur: boundMethod
+			onClick: __render_lookup(this, 3, [onSubmit, anotherValue]) || (__render_pending._ = event => onSubmit(this.props.value, anotherValue, event)),
+			onBlur: boundFunction,
+			onFocus: __render_lookup(this, 4, [value]) || (__render_pending._ = function () {
+				setTimeout(bar => console.log("focused!", foo, bar, value), 0);
+			})
 		});
 	}
 }
