@@ -11,7 +11,8 @@ class MyComponent {
 
 		const passthrough = () => this.simpleMethod();
 		const wrappingValue = () => this.someMethod(value);
-		const boundFunction = this.someMethod.bind(this, value, anotherValue);
+		let reassigned = this.someMethod.bind(this, value, anotherValue);
+		reassigned = () => false;
 
 		return (
 			<button

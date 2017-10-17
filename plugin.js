@@ -1,3 +1,30 @@
+function nameFromPath(path) {
+	if (path.isIdentifier()) {
+		return path.node.name;
+	}
+	if (path.node.id) {
+		return path.node.id.name;
+	}
+	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type == "Identifier") {
+		return path.parent.key.name;
+	}
+	if (path.parentPath.isVariableDeclarator() && path.parent.id.type == "Identifier") {
+		return path.parent.id.name;
+	}
+	if (path.parentPath.isAssignmentExpression()) {
+		if (path.parent.right === path.node) {
+			return nameFromPath(path.parentPath.get("left"));
+		}
+	}
+	if (path.parentPath.isJSXExpressionContainer()) {
+		return nameFromPath(path.parentPath);
+	}
+	if (path.parentPath.isJSXAttribute() && path.parent.name.type == "JSXIdentifier") {
+		return path.parent.name.name;
+	}
+	return "ref";
+}
+
 function patchMethod(methodPath, types) {
 	let i = 0;
 	let usedHelpers = 0;
@@ -80,7 +107,7 @@ function patchMethod(methodPath, types) {
 				path.replaceWith(types.callExpression(types.identifier("__render_bind"), lookupArguments));
 			} else if (path.isFunctionExpression() || path.isArrowFunctionExpression()) {
 				// Replace function expressions
-				const id = methodPath.scope.generateUidIdentifierBasedOnNode(path.node);
+				const id = methodPath.scope.generateUidIdentifier(nameFromPath(path) || "ref");
 				const init = path.node;
 				if (dependentValues.length || dependsOnThis) {
 					lookupArguments.push(id);

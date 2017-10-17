@@ -33,16 +33,19 @@ var __render_bind = function () {
 	};
 }();
 
-var _ref = function () {
+var _passthrough = function () {
 	return this.simpleMethod();
 },
-    _ref2 = function (value) {
+    _wrappingValue = function (value) {
 	return this.someMethod(value);
 },
-    _ref3 = function (onSubmit, value, anotherValue, event) {
+    _reassigned = function () {
+	return false;
+},
+    _onClick = function (onSubmit, value, anotherValue, event) {
 	return onSubmit(this.props.value, anotherValue, event);
 },
-    _ref4 = function (value) {
+    _onFocus = function (value) {
 	setTimeout(bar => console.log("focused!", foo, bar, value), 0);
 };
 
@@ -55,14 +58,15 @@ class MyComponent {
 		// Kind of silly, but represents all combinations
 		const { value, anotherValue, onSubmit } = this.props;
 
-		const passthrough = __render_bind(this, 0, _ref);
-		const wrappingValue = __render_bind(this, 1, _ref2, [this, value]);
-		const boundFunction = __render_bind(this, 2, this.someMethod, [this, value, anotherValue]);
+		const passthrough = __render_bind(this, 0, _passthrough);
+		const wrappingValue = __render_bind(this, 1, _wrappingValue, [this, value]);
+		let reassigned = __render_bind(this, 2, this.someMethod, [this, value, anotherValue]);
+		reassigned = _reassigned;
 
 		return React.createElement("button", {
-			onClick: __render_bind(this, 3, _ref3, [this, onSubmit, value, anotherValue]),
+			onClick: __render_bind(this, 4, _onClick, [this, onSubmit, value, anotherValue]),
 			onBlur: boundFunction,
-			onFocus: __render_bind(this, 4, _ref4, [this, value])
+			onFocus: __render_bind(this, 5, _onFocus, [this, value])
 		});
 	}
 }
