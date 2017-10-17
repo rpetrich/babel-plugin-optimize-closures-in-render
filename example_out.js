@@ -57,7 +57,7 @@ class MyComponent {
 
 		const passthrough = __render_bind(this, 0, _ref);
 		const wrappingValue = __render_bind(this, 1, _ref2, [this, value]);
-		const boundFunction = __render_bind(this, 2, this.someMethod);
+		const boundFunction = __render_bind(this, 2, this.someMethod, [this, value, anotherValue]);
 
 		return React.createElement("button", {
 			onClick: __render_bind(this, 3, _ref3, [this, onSubmit, value, anotherValue]),

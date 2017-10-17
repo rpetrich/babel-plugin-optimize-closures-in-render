@@ -74,7 +74,7 @@ function patchMethod(methodPath, types) {
 			if (path.isCallExpression() && path.get("callee").isMemberExpression() && !path.node.callee.computed && path.node.callee.property.name == "bind") {
 				// Replace .bind calls
 				lookupArguments.push(path.node.callee.object);
-				if (path.node.arguments.length && path.node.arguments[0].type !== "ThisExpression") {
+				if (path.node.arguments.length && (path.node.arguments.length != 1 || path.node.arguments[0].type !== "ThisExpression")) {
 					lookupArguments.push(types.arrayExpression(path.node.arguments));
 				}
 				path.replaceWith(types.callExpression(types.identifier("__render_bind"), lookupArguments));
