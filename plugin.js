@@ -5,6 +5,9 @@ function nameFromPath(path) {
 	if (path.node.id) {
 		return path.node.id.name;
 	}
+	if (path.isMemberExpression() && !path.parentPath.node.computed) {
+		return path.node.property.name;
+	}
 	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type == "Identifier") {
 		return path.parent.key.name;
 	}
@@ -21,6 +24,17 @@ function nameFromPath(path) {
 	}
 	if (path.parentPath.isJSXAttribute() && path.parent.name.type == "JSXIdentifier") {
 		return path.parent.name.name;
+	}
+	if (path.parentPath.isCallExpression()) {
+		const callee = path.parentPath.get("callee");
+		if (callee !== path) {
+			const callName = nameFromPath(callee);
+			if (path.isFunctionExpression() || path.isArrowFunctionExpression()) {
+				const upperCaseNames = path.node.params.filter(arg => arg.type === "Identifier").map(identifier => identifier.name.replace(/^\w/, s => s.toUpperCase()));
+				return callName + upperCaseNames.join("");
+			}
+			return callName;
+		}
 	}
 	return "ref";
 }
