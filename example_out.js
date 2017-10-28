@@ -47,11 +47,22 @@ var _passthrough = function () {
     _onFocus = function (value) {
 	setTimeout(bar => console.log("focused!", foo, bar, value), 0);
 },
-    _ul;
+    _div,
+    _ul,
+    _div2;
 
 import * as React from "react";
+import { ImportedComponent } from "some-react-library";
 
 var foo;
+
+function ChildComponent() {
+	return _div || (_div = React.createElement(
+		"div",
+		null,
+		"Test child"
+	));
+}
 
 class MyComponent {
 	simpleMethod() {}
@@ -101,6 +112,12 @@ class MyComponent {
 					{ "class": "last" },
 					"list"
 				)
+			)),
+			_div2 || (_div2 = React.createElement(
+				"div",
+				null,
+				React.createElement(ChildComponent, null),
+				React.createElement(ImportedComponent, null)
 			))
 		);
 	}

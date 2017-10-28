@@ -1,6 +1,11 @@
 import * as React from "react";
+import { ImportedComponent } from "some-react-library";
 
 var foo;
+
+function ChildComponent() {
+	return <div>Test child</div>;
+}
 
 class MyComponent {
 	simpleMethod() {
@@ -30,6 +35,10 @@ class MyComponent {
 					<li>static</li>
 					<li class="last">list</li>
 				</ul>
+				<div>
+					<ChildComponent/>
+					<ImportedComponent/>
+				</div>
 			</div>
 		)
 	} 

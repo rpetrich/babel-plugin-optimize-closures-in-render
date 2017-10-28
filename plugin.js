@@ -165,7 +165,7 @@ function patchMethod(methodPath, types) {
 	return usedHelpers;
 }
 
-function importBindingForNode(path) {
+function importBindingForPath(path) {
 	if (path.isIdentifier()) {
 		const binding = path.scope.getBinding(path.node.name);
 		if (binding && binding.path.isImportSpecifier() &&
@@ -189,7 +189,7 @@ function importBindingForNode(path) {
 }
 
 function isCreateElement(path) {
-	const binding = importBindingForNode(path);
+	const binding = importBindingForPath(path);
 	if (binding) {
 		return (binding.export === "createElement" || binding.export === "h") && (binding.module === "react" || binding.module === "preact" || binding.module === "dom");
 	}
@@ -206,13 +206,22 @@ function isStaticLiteral(path) {
 		enter(path) {
 			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isObjectProperty() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
 				if (path.isCallExpression() && isCallToCreateElement(path)) {
-					// Ignore React.create
-				} else if (isCreateElement(path)) {
+					// Ignore {react,preact,dom}.{createElement,h}
+					return;
+				} else if (importBindingForPath(path)) {
+					// Ignore imported bindings
 					path.skip();
-				} else {
-					result = false;
-					path.stop();
+					return;
+				} else if (path.isIdentifier()) {
+					// Ignore constant references (often local class or functional components)
+					const binding = path.scope.getBinding(path.node.name);
+					if (binding && binding.constant) {
+						path.skip();
+						return;
+					}
 				}
+				result = false;
+				path.stop();
 			}
 		}
 	})
