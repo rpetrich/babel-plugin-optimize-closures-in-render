@@ -3,7 +3,7 @@ var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
 function __render_bind(target, nodeIndex, func, boundValues) {
 	var targetCache;
 
-	if (map) {
+	if (__render_cache) {
 		(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
 	} else {
 		targetCache = target.__render_cache || (target.__render_cache = []);
