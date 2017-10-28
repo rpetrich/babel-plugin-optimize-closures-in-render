@@ -189,17 +189,17 @@ module.exports = function({ types, template }) {
 				exit(path) {
 					if (this.usedHelpers) {
 						const body = path.get("body.0");
-						body.insertBefore(template(`var __render_bind = (function() {
-							// Try using WeakMaps
-							var map = typeof WeakMap != "undefined" && new WeakMap();
-							return function(target, nodeIndex, func, boundValues) {
+						// Helper function
+						body.insertBefore(template(`var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
+							function __render_bind(target, nodeIndex, func, boundValues) {
+								// Load/populate the target's cache
 								var targetCache;
 								if (map) {
-									(targetCache = map.get(target)) || (map.set(target, targetCache = []));
+									(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
 								} else {
 									targetCache = target.__render_cache || (target.__render_cache = []);
 								}
-								// Lookup the cache for the particular node
+								// Lookup the cache for the particular node index
 								var nodeCache = targetCache[nodeIndex];
 								// Check if all the dependent values match
 								if (nodeCache) {
@@ -216,8 +216,7 @@ module.exports = function({ types, template }) {
 								var result = func.bind.apply(func, boundValues || [target]);
 								targetCache[nodeIndex] = { v: boundValues, _: result };
 								return result;
-							}
-						})();`)());
+							}`)());
 						path.stop();
 					}
 				}

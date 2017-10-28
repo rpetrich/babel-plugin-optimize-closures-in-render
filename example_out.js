@@ -1,37 +1,36 @@
-var __render_bind = function () {
-	var map = typeof WeakMap != "undefined" && new WeakMap();
-	return function (target, nodeIndex, func, boundValues) {
-		var targetCache;
+var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
 
-		if (map) {
-			(targetCache = map.get(target)) || map.set(target, targetCache = []);
-		} else {
-			targetCache = target.__render_cache || (target.__render_cache = []);
-		}
+function __render_bind(target, nodeIndex, func, boundValues) {
+	var targetCache;
 
-		var nodeCache = targetCache[nodeIndex];
+	if (map) {
+		(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
+	} else {
+		targetCache = target.__render_cache || (target.__render_cache = []);
+	}
 
-		if (nodeCache) {
-			if (boundValues) {
-				for (var i = 0; i < boundValues.length; i++) {
-					if (nodeCache.v[i] !== boundValues[i]) {
-						nodeCache.v = boundValues;
-						return nodeCache._ = func.bind.apply(func, boundValues);
-					}
+	var nodeCache = targetCache[nodeIndex];
+
+	if (nodeCache) {
+		if (boundValues) {
+			for (var i = 0; i < boundValues.length; i++) {
+				if (nodeCache.v[i] !== boundValues[i]) {
+					nodeCache.v = boundValues;
+					return nodeCache._ = func.bind.apply(func, boundValues);
 				}
 			}
-
-			return nodeCache._;
 		}
 
-		var result = func.bind.apply(func, boundValues || [target]);
-		targetCache[nodeIndex] = {
-			v: boundValues,
-			_: result
-		};
-		return result;
+		return nodeCache._;
+	}
+
+	var result = func.bind.apply(func, boundValues || [target]);
+	targetCache[nodeIndex] = {
+		v: boundValues,
+		_: result
 	};
-}();
+	return result;
+}
 
 var _passthrough = function () {
 	return this.simpleMethod();
