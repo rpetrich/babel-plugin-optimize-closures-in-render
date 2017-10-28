@@ -1,3 +1,5 @@
+import * as React from "react";
+
 var foo;
 
 class MyComponent {
@@ -15,11 +17,20 @@ class MyComponent {
 		reassigned = () => false;
 
 		return (
-			<button
-				onClick={event => onSubmit(this.props.value, anotherValue, event)}
-				onBlur={boundFunction}
-				onFocus={function() { setTimeout(bar => console.log("focused!", foo, bar, value), 0) }}
-			/>
+			<div>
+				<button
+					onClick={event => onSubmit(this.props.value, anotherValue, event)}
+					onBlur={boundFunction}
+					onFocus={function() { setTimeout(bar => console.log("focused!", foo, bar, value), 0) }}
+				/>
+				<ul>
+					<li class="first">This</li>
+					<li>is</li>
+					<li>a</li>
+					<li>static</li>
+					<li class="last">list</li>
+				</ul>
+			</div>
 		)
 	} 
 }

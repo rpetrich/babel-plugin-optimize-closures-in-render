@@ -46,7 +46,10 @@ var _passthrough = function () {
 },
     _onFocus = function (value) {
 	setTimeout(bar => console.log("focused!", foo, bar, value), 0);
-};
+},
+    _ul;
+
+import * as React from "react";
 
 var foo;
 
@@ -62,11 +65,44 @@ class MyComponent {
 		let reassigned = __render_bind(this, 2, this.someMethod, [this, value, anotherValue]);
 		reassigned = _reassigned;
 
-		return React.createElement("button", {
-			onClick: __render_bind(this, 4, _onClick, [this, onSubmit, value, anotherValue]),
-			onBlur: boundFunction,
-			onFocus: __render_bind(this, 5, _onFocus, [this, value])
-		});
+		return React.createElement(
+			"div",
+			null,
+			React.createElement("button", {
+				onClick: __render_bind(this, 4, _onClick, [this, onSubmit, value, anotherValue]),
+				onBlur: boundFunction,
+				onFocus: __render_bind(this, 5, _onFocus, [this, value])
+			}),
+			_ul || (_ul = React.createElement(
+				"ul",
+				null,
+				React.createElement(
+					"li",
+					{ "class": "first" },
+					"This"
+				),
+				React.createElement(
+					"li",
+					null,
+					"is"
+				),
+				React.createElement(
+					"li",
+					null,
+					"a"
+				),
+				React.createElement(
+					"li",
+					null,
+					"static"
+				),
+				React.createElement(
+					"li",
+					{ "class": "last" },
+					"list"
+				)
+			))
+		);
 	}
 }
 

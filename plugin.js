@@ -5,6 +5,9 @@ function nameFromPath(path) {
 	if (path.node.id) {
 		return path.node.id.name;
 	}
+	if (path.isStringLiteral()) {
+		return path.node.value;
+	}
 	if (path.isMemberExpression() && !path.parentPath.node.computed) {
 		return path.node.property.name;
 	}
@@ -36,7 +39,6 @@ function nameFromPath(path) {
 			return callName;
 		}
 	}
-	return "ref";
 }
 
 function patchMethod(methodPath, types) {
@@ -163,6 +165,60 @@ function patchMethod(methodPath, types) {
 	return usedHelpers;
 }
 
+function importBindingForNode(path) {
+	if (path.isIdentifier()) {
+		const binding = path.scope.getBinding(path.node.name);
+		if (binding && binding.path.isImportSpecifier() &&
+			binding.path.node.imported.type == "Identifier" &&
+			binding.path.parent.type == "ImportDeclaration" &&
+			binding.path.parent.source.type == "StringLiteral") {
+			return {
+				module: binding.path.parent.source.value,
+				export: binding.path.node.imported.name,
+			};
+		}
+	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type == "Identifier") {
+		const binding = path.scope.getBinding(path.node.object.name);
+		if (binding && binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type == "StringLiteral") {
+			return {
+				module: binding.path.parent.source.value,
+				export: path.node.property.name,
+			};
+		}
+	}
+}
+
+function isCreateElement(path) {
+	const binding = importBindingForNode(path);
+	if (binding) {
+		return (binding.export === "createElement" || binding.export === "h") && (binding.module === "react" || binding.module === "preact" || binding.module === "dom");
+	}
+	return false;
+}
+
+function isCallToCreateElement(path) {
+	return isCreateElement(path.get("callee"));
+}
+
+function isStaticLiteral(path) {
+	let result = true;
+	path.traverse({
+		enter(path) {
+			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isObjectProperty() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
+				if (path.isCallExpression() && isCallToCreateElement(path)) {
+					// Ignore React.create
+				} else if (isCreateElement(path)) {
+					path.skip();
+				} else {
+					result = false;
+					path.stop();
+				}
+			}
+		}
+	})
+	return result;
+}
+
 module.exports = function({ types, template }) {
 	return {
 		visitor: {
@@ -187,6 +243,16 @@ module.exports = function({ types, template }) {
 			},
 			Program: {
 				exit(path) {
+					path.traverse({
+						CallExpression(callPath) {
+							if (isCallToCreateElement(callPath) && isStaticLiteral(callPath)) {
+								const id = path.scope.generateUidIdentifier(nameFromPath(callPath.get("arguments.0")) || "element");
+								path.scope.push({ id });
+								callPath.replaceWith(types.logicalExpression("||", id, types.assignmentExpression("=", id, callPath.node)));
+								callPath.skip();
+							}
+						},
+					});
 					if (this.usedHelpers) {
 						const body = path.get("body.0");
 						// Helper function
