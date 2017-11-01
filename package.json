@@ -4,7 +4,7 @@
   "description": "Avoid closure creation inside render methods to reduce garbage creation/rerendering in React/Preact components",
   "main": "plugin.js",
   "scripts": {
-    "test": "babel --plugins babel-plugin-transform-react-jsx,./plugin example.js > example_out.js"
+    "test": "babel --plugins babel-plugin-transform-react-jsx,./plugin example.js -o example_out.js"
   },
   "repository": {
     "type": "git",
