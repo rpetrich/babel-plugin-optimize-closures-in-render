@@ -16,6 +16,11 @@ function shouldNotOptimize(value) {
 	return <div>{value}</div>;
 }
 
+function shouldAlsoOptimize() {
+	const copy = constant;
+	return <div>{copy}</div>;
+}
+
 class MyComponent {
 	simpleMethod() {
 	}

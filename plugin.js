@@ -219,7 +219,13 @@ function staticScopeForPath(path, globalPath) {
 					// Ignore constant references (often local class or functional components)
 					const binding = path.scope.getBinding(path.node.name);
 					if (binding && binding.constant) {
-						const bindingPath = binding.scope.path;
+						let bindingPath = binding.scope.path;
+						if (binding.path.isVariableDeclarator()) {
+							const initStaticScope = staticScopeForPath(binding.path.get("init"), result);
+							if (initStaticScope) {
+								bindingPath = initStaticScope;
+							}
+						}
 						let globalPathAttempt = result;
 						while (globalPathAttempt) {
 							if (globalPathAttempt === bindingPath) {

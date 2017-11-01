@@ -49,8 +49,9 @@ var _passthrough = function () {
 },
     _div,
     _div2,
+    _div3,
     _ul,
-    _div3;
+    _div4;
 
 import * as React from "react";
 import { ImportedComponent } from "some-react-library";
@@ -80,6 +81,15 @@ function shouldNotOptimize(value) {
 		null,
 		value
 	);
+}
+
+function shouldAlsoOptimize() {
+	const copy = constant;
+	return _div3 || (_div3 = React.createElement(
+		"div",
+		null,
+		copy
+	));
 }
 
 class MyComponent {
@@ -131,7 +141,7 @@ class MyComponent {
 					"list"
 				)
 			)),
-			_div3 || (_div3 = React.createElement(
+			_div4 || (_div4 = React.createElement(
 				"div",
 				null,
 				React.createElement(ChildComponent, null),
