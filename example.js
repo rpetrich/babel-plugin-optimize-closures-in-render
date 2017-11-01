@@ -7,6 +7,15 @@ function ChildComponent() {
 	return <div>Test child</div>;
 }
 
+const constant = 1;
+function shouldOptimize() {
+	return <div>{constant}</div>;
+}
+
+function shouldNotOptimize(value) {
+	return <div>{value}</div>;
+}
+
 class MyComponent {
 	simpleMethod() {
 	}

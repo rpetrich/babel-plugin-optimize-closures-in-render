@@ -48,8 +48,9 @@ var _passthrough = function () {
 	setTimeout(bar => console.log("focused!", foo, bar, value), 0);
 },
     _div,
+    _div2,
     _ul,
-    _div2;
+    _div3;
 
 import * as React from "react";
 import { ImportedComponent } from "some-react-library";
@@ -62,6 +63,23 @@ function ChildComponent() {
 		null,
 		"Test child"
 	));
+}
+
+const constant = 1;
+function shouldOptimize() {
+	return _div2 || (_div2 = React.createElement(
+		"div",
+		null,
+		constant
+	));
+}
+
+function shouldNotOptimize(value) {
+	return React.createElement(
+		"div",
+		null,
+		value
+	);
 }
 
 class MyComponent {
@@ -113,7 +131,7 @@ class MyComponent {
 					"list"
 				)
 			)),
-			_div2 || (_div2 = React.createElement(
+			_div3 || (_div3 = React.createElement(
 				"div",
 				null,
 				React.createElement(ChildComponent, null),

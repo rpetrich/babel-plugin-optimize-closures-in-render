@@ -200,7 +200,7 @@ function isCallToCreateElement(path) {
 	return isCreateElement(path.get("callee"));
 }
 
-function isStaticLiteral(path) {
+function isStaticLiteral(path, globalPath) {
 	let result = true;
 	path.traverse({
 		enter(path) {
@@ -216,8 +216,15 @@ function isStaticLiteral(path) {
 					// Ignore constant references (often local class or functional components)
 					const binding = path.scope.getBinding(path.node.name);
 					if (binding && binding.constant) {
-						path.skip();
-						return;
+						const bindingPath = binding.scope.path;
+						let globalPathAttempt = globalPath;
+						while (globalPathAttempt) {
+							if (globalPathAttempt === bindingPath) {
+								path.skip();
+								return;
+							}
+							globalPathAttempt = globalPathAttempt.parentPath;
+						}
 					}
 				}
 				result = false;
@@ -254,7 +261,7 @@ module.exports = function({ types, template }) {
 				exit(path) {
 					path.traverse({
 						CallExpression(callPath) {
-							if (isCallToCreateElement(callPath) && isStaticLiteral(callPath)) {
+							if (isCallToCreateElement(callPath) && isStaticLiteral(callPath, path)) {
 								const id = path.scope.generateUidIdentifier(nameFromPath(callPath.get("arguments.0")) || "element");
 								path.scope.push({ id });
 								callPath.replaceWith(types.logicalExpression("||", id, types.assignmentExpression("=", id, callPath.node)));
