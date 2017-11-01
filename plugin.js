@@ -200,10 +200,13 @@ function isCallToCreateElement(path) {
 	return isCreateElement(path.get("callee"));
 }
 
-function isStaticLiteral(path, globalPath) {
-	let result = true;
+function staticScopeForPath(path, globalPath) {
+	let result = globalPath;
 	path.traverse({
 		enter(path) {
+			if (!result) {
+				return;
+			}
 			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isObjectProperty() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
 				if (path.isCallExpression() && isCallToCreateElement(path)) {
 					// Ignore {react,preact,dom}.{createElement,h}
@@ -217,7 +220,7 @@ function isStaticLiteral(path, globalPath) {
 					const binding = path.scope.getBinding(path.node.name);
 					if (binding && binding.constant) {
 						const bindingPath = binding.scope.path;
-						let globalPathAttempt = globalPath;
+						let globalPathAttempt = result;
 						while (globalPathAttempt) {
 							if (globalPathAttempt === bindingPath) {
 								path.skip();
@@ -225,9 +228,12 @@ function isStaticLiteral(path, globalPath) {
 							}
 							globalPathAttempt = globalPathAttempt.parentPath;
 						}
+						result = bindingPath;
+						path.skip();
+						return;
 					}
 				}
-				result = false;
+				result = undefined;
 				path.stop();
 			}
 		}
@@ -261,11 +267,14 @@ module.exports = function({ types, template }) {
 				exit(path) {
 					path.traverse({
 						CallExpression(callPath) {
-							if (isCallToCreateElement(callPath) && isStaticLiteral(callPath, path)) {
-								const id = path.scope.generateUidIdentifier(nameFromPath(callPath.get("arguments.0")) || "element");
-								path.scope.push({ id });
-								callPath.replaceWith(types.logicalExpression("||", id, types.assignmentExpression("=", id, callPath.node)));
-								callPath.skip();
+							if (isCallToCreateElement(callPath)) {
+								let constantPath = staticScopeForPath(callPath, path);
+								if (constantPath && constantPath !== callPath.scope.path) {
+									const id = path.scope.generateUidIdentifier(nameFromPath(callPath.get("arguments.0")) || "element");
+									constantPath.scope.push({ id });
+									callPath.replaceWith(types.logicalExpression("||", id, types.assignmentExpression("=", id, callPath.node)));
+									callPath.skip();
+								}
 							}
 						},
 					});
