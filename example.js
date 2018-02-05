@@ -40,7 +40,7 @@ class MyComponent {
 				<button
 					onClick={event => onSubmit(this.props.value, anotherValue, event)}
 					onBlur={boundFunction}
-					onFocus={function() { setTimeout(bar => console.log("focused!", foo, bar, value), 0) }}
+					onFocus={function() { setTimeout(bar => console.log("focused!", foo, bar, value, value), 0) }}
 				/>
 				<ul>
 					<li class="first">This</li>

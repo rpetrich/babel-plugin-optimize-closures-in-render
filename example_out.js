@@ -45,7 +45,7 @@ var _passthrough = function () {
 	return onSubmit(this.props.value, anotherValue, event);
 },
     _onFocus = function (value) {
-	setTimeout(bar => console.log("focused!", foo, bar, value), 0);
+	setTimeout(bar => console.log("focused!", foo, bar, value, value), 0);
 },
     _div,
     _div2,

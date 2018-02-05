@@ -73,7 +73,9 @@ function patchMethod(methodPath, types) {
 									_thisIndex = dependentValues.length;
 								}
 								// Found a constant from the render scope, include it in the cache check
-								dependentValues.push(identifierPath.node);
+								if (!dependentValues.find(otherNode => otherNode.name === identifierPath.node.name)) {
+									dependentValues.push(identifierPath.node);
+								}
 							} else {
 								// binding was not constant, do not optimize this
 								shouldReplace = false;
