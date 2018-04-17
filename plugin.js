@@ -181,11 +181,28 @@ function importBindingForPath(path) {
 		}
 	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type == "Identifier") {
 		const binding = path.scope.getBinding(path.node.object.name);
-		if (binding && binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type == "StringLiteral") {
-			return {
-				module: binding.path.parent.source.value,
-				export: path.node.property.name,
-			};
+		if (binding) {
+			if (binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type == "StringLiteral") {
+				return {
+					module: binding.path.parent.source.value,
+					export: path.node.property.name,
+				};
+			}
+			if (binding.path.isVariableDeclarator()) {
+				let initPath = binding.path.get("init");
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name == "_interopRequireWildcard" && initPath.node.arguments.length == 1 && initPath.node.arguments[0].type == "Identifier") {
+					const otherBinding = path.scope.getBinding(initPath.node.arguments[0].name);
+					if (otherBinding && otherBinding.path.isVariableDeclarator()) {
+						initPath = otherBinding.path.get("init");
+					}
+				}
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name == "require" && initPath.node.arguments.length == 1 && initPath.node.arguments[0].type == "StringLiteral") {
+					return {
+						module: initPath.node.arguments[0].value,
+						export: path.node.property.name,
+					};
+				}
+			}
 		}
 	}
 }
