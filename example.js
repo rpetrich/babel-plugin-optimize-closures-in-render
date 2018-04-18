@@ -57,3 +57,9 @@ class MyComponent {
 		)
 	} 
 }
+
+var dom = require("dom");
+
+function requireTest() {
+	return dom.h("div", null);
+}

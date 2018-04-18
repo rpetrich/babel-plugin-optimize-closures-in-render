@@ -51,7 +51,8 @@ var _passthrough = function () {
     _div2,
     _div3,
     _ul,
-    _div4;
+    _div4,
+    _div5;
 
 import * as React from "react";
 import { ImportedComponent } from "some-react-library";
@@ -149,4 +150,10 @@ class MyComponent {
 			))
 		);
 	}
+}
+
+var dom = require("dom");
+
+function requireTest() {
+	return _div5 || (_div5 = dom.h("div", null));
 }
