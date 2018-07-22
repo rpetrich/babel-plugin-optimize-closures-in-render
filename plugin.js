@@ -11,10 +11,10 @@ function nameFromPath(path) {
 	if (path.isMemberExpression() && !path.parentPath.node.computed) {
 		return path.node.property.name;
 	}
-	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type == "Identifier") {
+	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type === "Identifier") {
 		return path.parent.key.name;
 	}
-	if (path.parentPath.isVariableDeclarator() && path.parent.id.type == "Identifier") {
+	if (path.parentPath.isVariableDeclarator() && path.parent.id.type === "Identifier") {
 		return path.parent.id.name;
 	}
 	if (path.parentPath.isAssignmentExpression()) {
@@ -25,7 +25,7 @@ function nameFromPath(path) {
 	if (path.parentPath.isJSXExpressionContainer()) {
 		return nameFromPath(path.parentPath);
 	}
-	if (path.parentPath.isJSXAttribute() && path.parent.name.type == "JSXIdentifier") {
+	if (path.parentPath.isJSXAttribute() && path.parent.name.type === "JSXIdentifier") {
 		return path.parent.name.name;
 	}
 	if (path.parentPath.isCallExpression()) {
@@ -65,7 +65,7 @@ function patchMethod(methodPath, types) {
 				const binding = identifierPath.scope.getBinding(name);
 				if (binding) {
 					let bindingPath = binding.path;
-					while (bindingPath && bindingPath != path) {
+					while (bindingPath && bindingPath !== path) {
 						if (bindingPath === methodPath) {
 							if (binding.constant) {
 								// Possibly treat arguments named as _this specially
@@ -116,10 +116,10 @@ function patchMethod(methodPath, types) {
 		if (shouldReplace) {
 			usedHelpers = true;
 			const lookupArguments = [types.thisExpression(), types.numericLiteral(i)];
-			if (path.isCallExpression() && path.get("callee").isMemberExpression() && !path.node.callee.computed && path.node.callee.property.name == "bind") {
+			if (path.isCallExpression() && path.get("callee").isMemberExpression() && !path.node.callee.computed && path.node.callee.property.name === "bind") {
 				// Replace .bind calls
 				lookupArguments.push(path.node.callee.object);
-				if (path.node.arguments.length && (path.node.arguments.length != 1 || path.node.arguments[0].type !== "ThisExpression")) {
+				if (path.node.arguments.length && (path.node.arguments.length !== 1 || path.node.arguments[0].type !== "ThisExpression")) {
 					lookupArguments.push(types.arrayExpression(path.node.arguments));
 				}
 				path.replaceWith(types.callExpression(types.identifier("__render_bind"), lookupArguments));
@@ -137,7 +137,7 @@ function patchMethod(methodPath, types) {
 					path.replaceWith(id);
 				}
 				const params = dependentValues.concat(init.params);
-				const body = init.body.type == "BlockStatement" ? init.body : types.blockStatement([types.returnStatement(init.body)]);
+				const body = init.body.type === "BlockStatement" ? init.body : types.blockStatement([types.returnStatement(init.body)]);
 				methodPath.scope.parent.push({ id, init: types.functionExpression(init.id, params, body, init.generator, init.async) });
 			} else {
 				// How did we get here?
@@ -159,7 +159,7 @@ function patchMethod(methodPath, types) {
 		CallExpression(path) {
 			const callee = path.get("callee");
 			// But only calls to bind
-			if (callee.isMemberExpression() && !callee.node.computed && callee.node.property.name == "bind") {
+			if (callee.isMemberExpression() && !callee.node.computed && callee.node.property.name === "bind") {
 				cachePathOnThis(path);
 			}
 		}
@@ -171,18 +171,18 @@ function importBindingForPath(path) {
 	if (path.isIdentifier()) {
 		const binding = path.scope.getBinding(path.node.name);
 		if (binding && binding.path.isImportSpecifier() &&
-			binding.path.node.imported.type == "Identifier" &&
-			binding.path.parent.type == "ImportDeclaration" &&
-			binding.path.parent.source.type == "StringLiteral") {
+			binding.path.node.imported.type === "Identifier" &&
+			binding.path.parent.type === "ImportDeclaration" &&
+			binding.path.parent.source.type === "StringLiteral") {
 			return {
 				module: binding.path.parent.source.value,
 				export: binding.path.node.imported.name,
 			};
 		}
-	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type == "Identifier") {
+	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type === "Identifier") {
 		const binding = path.scope.getBinding(path.node.object.name);
 		if (binding) {
-			if (binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type == "StringLiteral") {
+			if (binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type === "StringLiteral") {
 				return {
 					module: binding.path.parent.source.value,
 					export: path.node.property.name,
@@ -190,13 +190,13 @@ function importBindingForPath(path) {
 			}
 			if (binding.path.isVariableDeclarator()) {
 				let initPath = binding.path.get("init");
-				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name == "_interopRequireWildcard" && initPath.node.arguments.length == 1 && initPath.node.arguments[0].type == "Identifier") {
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name === "_interopRequireWildcard" && initPath.node.arguments.length === 1 && initPath.node.arguments[0].type === "Identifier") {
 					const otherBinding = path.scope.getBinding(initPath.node.arguments[0].name);
 					if (otherBinding && otherBinding.path.isVariableDeclarator()) {
 						initPath = otherBinding.path.get("init");
 					}
 				}
-				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name == "require" && initPath.node.arguments.length == 1 && initPath.node.arguments[0].type == "StringLiteral") {
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name === "require" && initPath.node.arguments.length === 1 && initPath.node.arguments[0].type === "StringLiteral") {
 					return {
 						module: initPath.node.arguments[0].value,
 						export: path.node.property.name,
@@ -278,9 +278,9 @@ module.exports = function({ types, template }) {
 				const parentPath = path.parentPath;
 				if (parentPath.isAssignmentExpression()) {
 					const leftPath = parentPath.get("left");
-					if (leftPath.isMemberExpression() && !leftPath.node.computed && leftPath.node.property.name == "render") {
+					if (leftPath.isMemberExpression() && !leftPath.node.computed && leftPath.node.property.name === "render") {
 						const objectPath = leftPath.get("object");
-						if (objectPath.isMemberExpression() && !objectPath.node.computed && objectPath.node.property.name == "prototype") {
+						if (objectPath.isMemberExpression() && !objectPath.node.computed && objectPath.node.property.name === "prototype") {
 							if (patchMethod(path, types)) {
 								this.usedHelpers = true;
 							}
