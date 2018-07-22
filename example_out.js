@@ -1,12 +1,14 @@
 var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
 
+var __render_symbol = typeof Symbol !== "undefined" ? Symbol("__render_cache") : "__render_cache";
+
 function __render_bind(target, nodeIndex, func, boundValues) {
 	var targetCache;
 
 	if (__render_cache) {
 		(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
 	} else {
-		targetCache = target.__render_cache || (target.__render_cache = []);
+		targetCache = Object.hasOwnProperty.call(target, __render_symbol) ? target[__render_symbol] : target[__render_symbol] = [];
 	}
 
 	var nodeCache = targetCache[nodeIndex];
