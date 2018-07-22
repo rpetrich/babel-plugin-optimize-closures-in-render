@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-optimize-closures-in-render",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Avoid closure creation inside render methods to reduce garbage creation/rerendering in React/Preact components",
   "main": "plugin.js",
   "scripts": {
