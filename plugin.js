@@ -219,6 +219,10 @@ function isCallToCreateElement(path) {
 	return isCreateElement(path.get("callee"));
 }
 
+function isMutatedPropertyName(name) {
+	return name === "key" || name === "ref";
+}
+
 function staticScopeForPath(path, globalPath) {
 	let result = globalPath;
 	path.traverse({
@@ -226,8 +230,21 @@ function staticScopeForPath(path, globalPath) {
 			if (!result) {
 				return;
 			}
-			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isObjectProperty() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
-				if (path.isCallExpression() && isCallToCreateElement(path)) {
+			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
+				if (path.isObjectProperty()) {
+					const key = path.get("key");
+					if (path.node.computed) {
+						if (key.isStringLiteral() && !isMutatedPropertyName(key.node.value)) {
+							return;
+						}
+					} else {
+						if (key.isStringLiteral() && !isMutatedPropertyName(key.node.value)) {
+							return;
+						} else if (key.isIdentifier() && !isMutatedPropertyName(key.node.name)) {
+							return;
+						}
+					}
+				} else if (path.isCallExpression() && isCallToCreateElement(path)) {
 					// Ignore {react,preact,dom}.{createElement,h}
 					return;
 				} else if (importBindingForPath(path)) {
