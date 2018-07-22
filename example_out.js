@@ -54,7 +54,8 @@ var _passthrough = function () {
     _div3,
     _ul,
     _div4,
-    _div5;
+    _div5,
+    _div6;
 
 import * as React from "react";
 import { ImportedComponent } from "some-react-library";
@@ -94,6 +95,8 @@ function shouldAlsoOptimize() {
 		copy
 	));
 }
+
+function receiveRef(ref) {}
 
 class MyComponent {
 	simpleMethod() {}
@@ -149,7 +152,10 @@ class MyComponent {
 				null,
 				React.createElement(ChildComponent, null),
 				React.createElement(ImportedComponent, null)
-			))
+			)),
+			React.createElement("div", { ref: receiveRef }),
+			_div5 || (_div5 = React.createElement("div", { notKeyOrRef: "shouldCache" })),
+			React.createElement("div", { key: "shouldNotCache" })
 		);
 	}
 }
@@ -157,5 +163,5 @@ class MyComponent {
 var dom = require("dom");
 
 function requireTest() {
-	return _div5 || (_div5 = dom.h("div", null));
+	return _div6 || (_div6 = dom.h("div", null));
 }
