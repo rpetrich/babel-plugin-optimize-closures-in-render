@@ -235,6 +235,9 @@ function staticScopeForPath(path, globalPath) {
 					path.skip();
 					return;
 				} else if (path.isIdentifier()) {
+					if (!path.isReferencedIdentifier()) {
+						return;
+					}
 					// Ignore constant references (often local class or functional components)
 					const binding = path.scope.getBinding(path.node.name);
 					if (binding && binding.constant) {
