@@ -21,6 +21,9 @@ function shouldAlsoOptimize() {
 	return <div>{copy}</div>;
 }
 
+function receiveRef(ref) {
+}
+
 class MyComponent {
 	simpleMethod() {
 	}
@@ -53,7 +56,16 @@ class MyComponent {
 					<ChildComponent/>
 					<ImportedComponent/>
 				</div>
+				<div ref={receiveRef}/>
+				<div notKeyOrRef="shouldCache"/>
+				<div key="shouldNotCache"/>
 			</div>
 		)
 	} 
+}
+
+var dom = require("dom");
+
+function requireTest() {
+	return dom.h("div", null);
 }

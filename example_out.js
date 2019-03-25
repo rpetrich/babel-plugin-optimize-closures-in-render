@@ -1,12 +1,14 @@
 var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
 
+var __render_symbol = typeof Symbol !== "undefined" ? Symbol("__render_cache") : "__render_cache";
+
 function __render_bind(target, nodeIndex, func, boundValues) {
 	var targetCache;
 
 	if (__render_cache) {
 		(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
 	} else {
-		targetCache = target.__render_cache || (target.__render_cache = []);
+		targetCache = Object.hasOwnProperty.call(target, __render_symbol) ? target[__render_symbol] : target[__render_symbol] = [];
 	}
 
 	var nodeCache = targetCache[nodeIndex];
@@ -51,7 +53,9 @@ var _passthrough = function () {
     _div2,
     _div3,
     _ul,
-    _div4;
+    _div4,
+    _div5,
+    _div6;
 
 import * as React from "react";
 import { ImportedComponent } from "some-react-library";
@@ -91,6 +95,8 @@ function shouldAlsoOptimize() {
 		copy
 	));
 }
+
+function receiveRef(ref) {}
 
 class MyComponent {
 	simpleMethod() {}
@@ -146,7 +152,16 @@ class MyComponent {
 				null,
 				React.createElement(ChildComponent, null),
 				React.createElement(ImportedComponent, null)
-			))
+			)),
+			React.createElement("div", { ref: receiveRef }),
+			_div5 || (_div5 = React.createElement("div", { notKeyOrRef: "shouldCache" })),
+			React.createElement("div", { key: "shouldNotCache" })
 		);
 	}
+}
+
+var dom = require("dom");
+
+function requireTest() {
+	return _div6 || (_div6 = dom.h("div", null));
 }

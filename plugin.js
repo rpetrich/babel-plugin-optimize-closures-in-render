@@ -11,10 +11,10 @@ function nameFromPath(path) {
 	if (path.isMemberExpression() && !path.parentPath.node.computed) {
 		return path.node.property.name;
 	}
-	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type == "Identifier") {
+	if (path.parentPath.isObjectProperty() && !path.parent.computed && path.parent.key.type === "Identifier") {
 		return path.parent.key.name;
 	}
-	if (path.parentPath.isVariableDeclarator() && path.parent.id.type == "Identifier") {
+	if (path.parentPath.isVariableDeclarator() && path.parent.id.type === "Identifier") {
 		return path.parent.id.name;
 	}
 	if (path.parentPath.isAssignmentExpression()) {
@@ -25,7 +25,7 @@ function nameFromPath(path) {
 	if (path.parentPath.isJSXExpressionContainer()) {
 		return nameFromPath(path.parentPath);
 	}
-	if (path.parentPath.isJSXAttribute() && path.parent.name.type == "JSXIdentifier") {
+	if (path.parentPath.isJSXAttribute() && path.parent.name.type === "JSXIdentifier") {
 		return path.parent.name.name;
 	}
 	if (path.parentPath.isCallExpression()) {
@@ -65,7 +65,7 @@ function patchMethod(methodPath, types) {
 				const binding = identifierPath.scope.getBinding(name);
 				if (binding) {
 					let bindingPath = binding.path;
-					while (bindingPath && bindingPath != path) {
+					while (bindingPath && bindingPath !== path) {
 						if (bindingPath === methodPath) {
 							if (binding.constant) {
 								// Possibly treat arguments named as _this specially
@@ -116,10 +116,10 @@ function patchMethod(methodPath, types) {
 		if (shouldReplace) {
 			usedHelpers = true;
 			const lookupArguments = [types.thisExpression(), types.numericLiteral(i)];
-			if (path.isCallExpression() && path.get("callee").isMemberExpression() && !path.node.callee.computed && path.node.callee.property.name == "bind") {
+			if (path.isCallExpression() && path.get("callee").isMemberExpression() && !path.node.callee.computed && path.node.callee.property.name === "bind") {
 				// Replace .bind calls
 				lookupArguments.push(path.node.callee.object);
-				if (path.node.arguments.length && (path.node.arguments.length != 1 || path.node.arguments[0].type !== "ThisExpression")) {
+				if (path.node.arguments.length && (path.node.arguments.length !== 1 || path.node.arguments[0].type !== "ThisExpression")) {
 					lookupArguments.push(types.arrayExpression(path.node.arguments));
 				}
 				path.replaceWith(types.callExpression(types.identifier("__render_bind"), lookupArguments));
@@ -137,7 +137,7 @@ function patchMethod(methodPath, types) {
 					path.replaceWith(id);
 				}
 				const params = dependentValues.concat(init.params);
-				const body = init.body.type == "BlockStatement" ? init.body : types.blockStatement([types.returnStatement(init.body)]);
+				const body = init.body.type === "BlockStatement" ? init.body : types.blockStatement([types.returnStatement(init.body)]);
 				methodPath.scope.parent.push({ id, init: types.functionExpression(init.id, params, body, init.generator, init.async) });
 			} else {
 				// How did we get here?
@@ -159,7 +159,7 @@ function patchMethod(methodPath, types) {
 		CallExpression(path) {
 			const callee = path.get("callee");
 			// But only calls to bind
-			if (callee.isMemberExpression() && !callee.node.computed && callee.node.property.name == "bind") {
+			if (callee.isMemberExpression() && !callee.node.computed && callee.node.property.name === "bind") {
 				cachePathOnThis(path);
 			}
 		}
@@ -171,21 +171,38 @@ function importBindingForPath(path) {
 	if (path.isIdentifier()) {
 		const binding = path.scope.getBinding(path.node.name);
 		if (binding && binding.path.isImportSpecifier() &&
-			binding.path.node.imported.type == "Identifier" &&
-			binding.path.parent.type == "ImportDeclaration" &&
-			binding.path.parent.source.type == "StringLiteral") {
+			binding.path.node.imported.type === "Identifier" &&
+			binding.path.parent.type === "ImportDeclaration" &&
+			binding.path.parent.source.type === "StringLiteral") {
 			return {
 				module: binding.path.parent.source.value,
 				export: binding.path.node.imported.name,
 			};
 		}
-	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type == "Identifier") {
+	} else if (path.isMemberExpression() && !path.node.computed && path.node.object.type === "Identifier") {
 		const binding = path.scope.getBinding(path.node.object.name);
-		if (binding && binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type == "StringLiteral") {
-			return {
-				module: binding.path.parent.source.value,
-				export: path.node.property.name,
-			};
+		if (binding) {
+			if (binding.path.isImportNamespaceSpecifier() && binding.path.parent.source.type === "StringLiteral") {
+				return {
+					module: binding.path.parent.source.value,
+					export: path.node.property.name,
+				};
+			}
+			if (binding.path.isVariableDeclarator()) {
+				let initPath = binding.path.get("init");
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name === "_interopRequireWildcard" && initPath.node.arguments.length === 1 && initPath.node.arguments[0].type === "Identifier") {
+					const otherBinding = path.scope.getBinding(initPath.node.arguments[0].name);
+					if (otherBinding && otherBinding.path.isVariableDeclarator()) {
+						initPath = otherBinding.path.get("init");
+					}
+				}
+				if (initPath.isCallExpression() && initPath.get("callee").isIdentifier() && initPath.get("callee").node.name === "require" && initPath.node.arguments.length === 1 && initPath.node.arguments[0].type === "StringLiteral") {
+					return {
+						module: initPath.node.arguments[0].value,
+						export: path.node.property.name,
+					};
+				}
+			}
 		}
 	}
 }
@@ -202,6 +219,10 @@ function isCallToCreateElement(path) {
 	return isCreateElement(path.get("callee"));
 }
 
+function isMutatedPropertyName(name) {
+	return name === "key" || name === "ref";
+}
+
 function staticScopeForPath(path, globalPath) {
 	let result = globalPath;
 	path.traverse({
@@ -209,8 +230,21 @@ function staticScopeForPath(path, globalPath) {
 			if (!result) {
 				return;
 			}
-			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isObjectProperty() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
-				if (path.isCallExpression() && isCallToCreateElement(path)) {
+			if (!(path.isArrayExpression() || path.isBinaryExpression() || path.isBooleanLiteral() || path.isConditionalExpression() || path.isLogicalExpression() || path.isNullLiteral() || path.isNumericLiteral() || path.isObjectExpression() || path.isRegExpLiteral() || path.isSequenceExpression() || path.isStringLiteral() || path.isUnaryExpression())) {
+				if (path.isObjectProperty()) {
+					const key = path.get("key");
+					if (path.node.computed) {
+						if (key.isStringLiteral() && !isMutatedPropertyName(key.node.value)) {
+							return;
+						}
+					} else {
+						if (key.isStringLiteral() && !isMutatedPropertyName(key.node.value)) {
+							return;
+						} else if (key.isIdentifier() && !isMutatedPropertyName(key.node.name)) {
+							return;
+						}
+					}
+				} else if (path.isCallExpression() && isCallToCreateElement(path)) {
 					// Ignore {react,preact,dom}.{createElement,h}
 					return;
 				} else if (importBindingForPath(path)) {
@@ -218,6 +252,9 @@ function staticScopeForPath(path, globalPath) {
 					path.skip();
 					return;
 				} else if (path.isIdentifier()) {
+					if (!path.isReferencedIdentifier()) {
+						return;
+					}
 					// Ignore constant references (often local class or functional components)
 					const binding = path.scope.getBinding(path.node.name);
 					if (binding && binding.constant) {
@@ -261,9 +298,9 @@ module.exports = function({ types, template }) {
 				const parentPath = path.parentPath;
 				if (parentPath.isAssignmentExpression()) {
 					const leftPath = parentPath.get("left");
-					if (leftPath.isMemberExpression() && !leftPath.node.computed && leftPath.node.property.name == "render") {
+					if (leftPath.isMemberExpression() && !leftPath.node.computed && leftPath.node.property.name === "render") {
 						const objectPath = leftPath.get("object");
-						if (objectPath.isMemberExpression() && !objectPath.node.computed && objectPath.node.property.name == "prototype") {
+						if (objectPath.isMemberExpression() && !objectPath.node.computed && objectPath.node.property.name === "prototype") {
 							if (patchMethod(path, types)) {
 								this.usedHelpers = true;
 							}
@@ -290,13 +327,14 @@ module.exports = function({ types, template }) {
 						const body = path.get("body.0");
 						// Helper function
 						body.insertBefore(template(`var __render_cache = typeof WeakMap !== "undefined" && new WeakMap();
+							var __render_symbol = typeof Symbol !== "undefined" ? Symbol("__render_cache") : "__render_cache";
 							function __render_bind(target, nodeIndex, func, boundValues) {
 								// Load/populate the target's cache
 								var targetCache;
 								if (__render_cache) {
 									(targetCache = __render_cache.get(target)) || __render_cache.set(target, targetCache = []);
 								} else {
-									targetCache = target.__render_cache || (target.__render_cache = []);
+									targetCache = Object.hasOwnProperty.call(target, __render_symbol) ? target[__render_symbol] : (target[__render_symbol] = []);
 								}
 								// Lookup the cache for the particular node index
 								var nodeCache = targetCache[nodeIndex];
