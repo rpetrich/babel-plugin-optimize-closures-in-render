@@ -22,11 +22,9 @@
     "url": "https://github.com/rpetrich/babel-plugin-optimize-closures-in-render/issues"
   },
   "homepage": "https://github.com/rpetrich/babel-plugin-optimize-closures-in-render#readme",
-  "peerDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-traverse": "^6.26.0"
-  },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-traverse": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1"
   }
 }
